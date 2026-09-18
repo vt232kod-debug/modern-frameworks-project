@@ -3,6 +3,8 @@
 namespace App\Entity;
 
 use App\Repository\MovieRepository;
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Context;
@@ -17,13 +19,13 @@ class Movie
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['movie:read'])]
+    #[Groups(['movie:read', 'screening:read', 'ticket:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 255)]
-    #[Groups(['movie:read', 'movie:write'])]
+    #[Groups(['movie:read', 'movie:write', 'screening:read', 'ticket:read'])]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -51,6 +53,17 @@ class Movie
     #[Assert\Choice(choices: ['0+', '6+', '12+', '16+', '18+'])]
     #[Groups(['movie:read', 'movie:write'])]
     private ?string $ageRating = null;
+
+    /**
+     * @var Collection<int, Screening>
+     */
+    #[ORM\OneToMany(targetEntity: Screening::class, mappedBy: 'movie')]
+    private Collection $screenings;
+
+    public function __construct()
+    {
+        $this->screenings = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
@@ -127,5 +140,13 @@ class Movie
         $this->ageRating = $ageRating;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, Screening>
+     */
+    public function getScreenings(): Collection
+    {
+        return $this->screenings;
     }
 }

@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use App\Models\Movie;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
-class MovieController extends Controller
+class MovieController extends ApiController
 {
     public function index(): JsonResponse
     {
@@ -17,7 +16,7 @@ class MovieController extends Controller
 
     public function store(Request $request): JsonResponse
     {
-        $movie = Movie::create($request->validate($this->rules()));
+        $movie = Movie::create($this->validatePayload($request, $this->rules()));
 
         return response()->json($movie, 201);
     }
@@ -29,13 +28,7 @@ class MovieController extends Controller
 
     public function update(Request $request, Movie $movie): JsonResponse
     {
-        // PATCH updates only the fields that were sent, PUT requires the full object
-        $rules = $this->rules();
-        if ($request->isMethod('patch')) {
-            $rules = array_map(fn (array $r) => ['sometimes', ...$r], $rules);
-        }
-
-        $movie->update($request->validate($rules));
+        $movie->update($this->validatePayload($request, $this->rules()));
 
         return response()->json($movie);
     }
@@ -55,7 +48,7 @@ class MovieController extends Controller
             'genre' => ['required', 'string', 'max:100'],
             'duration_minutes' => ['required', 'integer', 'min:1'],
             'release_date' => ['nullable', 'date_format:Y-m-d'],
-            'age_rating' => ['nullable', Rule::in(['0+', '6+', '12+', '16+', '18+'])],
+            'age_rating' => ['nullable', Rule::in(Movie::AGE_RATINGS)],
         ];
     }
 }

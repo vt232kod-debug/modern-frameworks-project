@@ -17,4 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions) {
         // Always answer API requests with JSON (validation errors, 404, etc.)
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*'));
+        $exceptions->render(fn (Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) => $request->is('api/*')
+            ? response()->json(['message' => 'Resource not found.'], 404)
+            : null);
     })->create();
