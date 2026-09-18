@@ -1,0 +1,116 @@
+# Laravel API — http://localhost:8001
+# Порядок: фільм → зал → сеанс → клієнт → квиток
+
+### Фільми — список
+GET http://localhost:8001/api/movies
+Accept: application/json
+
+### Фільми — створити
+POST http://localhost:8001/api/movies
+Accept: application/json
+Content-Type: application/json
+
+{"title": "Dune: Part Two", "description": "Paul Atreides unites with the Fremen", "genre": "Sci-Fi", "duration_minutes": 166, "release_date": "2024-03-01", "age_rating": "12+"}
+
+### Фільми — один
+GET http://localhost:8001/api/movies/1
+Accept: application/json
+
+### Фільми — оновити
+PATCH http://localhost:8001/api/movies/1
+Accept: application/json
+Content-Type: application/json
+
+{"age_rating": "16+"}
+
+### Зали — створити
+POST http://localhost:8001/api/halls
+Accept: application/json
+Content-Type: application/json
+
+{"name": "Hall 1", "type": "IMAX", "rows_count": 10, "seats_per_row": 12}
+
+### Зали — список
+GET http://localhost:8001/api/halls
+Accept: application/json
+
+### Зали — оновити
+PUT http://localhost:8001/api/halls/1
+Accept: application/json
+Content-Type: application/json
+
+{"name": "Hall 1", "type": "VIP", "rows_count": 8, "seats_per_row": 10}
+
+### Сеанси — створити (зв'язок з фільмом і залом)
+POST http://localhost:8001/api/screenings
+Accept: application/json
+Content-Type: application/json
+
+{"movie_id": 1, "hall_id": 1, "starts_at": "2026-09-20 18:30", "price": 250, "language": "UA"}
+
+### Сеанси — список
+GET http://localhost:8001/api/screenings
+Accept: application/json
+
+### Сеанси — оновити
+PATCH http://localhost:8001/api/screenings/1
+Accept: application/json
+Content-Type: application/json
+
+{"price": 220}
+
+### Клієнти — створити
+POST http://localhost:8001/api/customers
+Accept: application/json
+Content-Type: application/json
+
+{"first_name": "Olena", "last_name": "Koval", "email": "olena@example.com", "phone": "+380501112233", "birth_date": "2000-05-10"}
+
+### Клієнти — список
+GET http://localhost:8001/api/customers
+Accept: application/json
+
+### Квитки — створити (зв'язок з сеансом і клієнтом, ціна береться з сеансу)
+POST http://localhost:8001/api/tickets
+Accept: application/json
+Content-Type: application/json
+
+{"screening_id": 1, "customer_id": 1, "seat_row": 5, "seat_number": 7}
+
+### Квитки — те саме місце ще раз (очікується 422)
+POST http://localhost:8001/api/tickets
+Accept: application/json
+Content-Type: application/json
+
+{"screening_id": 1, "customer_id": 1, "seat_row": 5, "seat_number": 7}
+
+### Квитки — список
+GET http://localhost:8001/api/tickets
+Accept: application/json
+
+### Квитки — оплатити
+PATCH http://localhost:8001/api/tickets/1
+Accept: application/json
+Content-Type: application/json
+
+{"status": "paid"}
+
+### Квитки — видалити
+DELETE http://localhost:8001/api/tickets/1
+Accept: application/json
+
+### Клієнти — видалити
+DELETE http://localhost:8001/api/customers/1
+Accept: application/json
+
+### Сеанси — видалити
+DELETE http://localhost:8001/api/screenings/1
+Accept: application/json
+
+### Зали — видалити
+DELETE http://localhost:8001/api/halls/1
+Accept: application/json
+
+### Фільми — видалити
+DELETE http://localhost:8001/api/movies/1
+Accept: application/json

@@ -1,0 +1,95 @@
+# Symfony API — http://localhost:8000
+# Порядок: фільм → зал → сеанс → клієнт → квиток
+
+### Фільми — список
+GET http://localhost:8000/api/movies
+
+### Фільми — створити
+POST http://localhost:8000/api/movies
+Content-Type: application/json
+
+{"title": "Dune: Part Two", "description": "Paul Atreides unites with the Fremen", "genre": "Sci-Fi", "durationMinutes": 166, "releaseDate": "2024-03-01", "ageRating": "12+"}
+
+### Фільми — один
+GET http://localhost:8000/api/movies/1
+
+### Фільми — оновити
+PATCH http://localhost:8000/api/movies/1
+Content-Type: application/json
+
+{"ageRating": "16+"}
+
+### Зали — створити
+POST http://localhost:8000/api/halls
+Content-Type: application/json
+
+{"name": "Hall 1", "type": "IMAX", "rowsCount": 10, "seatsPerRow": 12}
+
+### Зали — список
+GET http://localhost:8000/api/halls
+
+### Зали — оновити
+PUT http://localhost:8000/api/halls/1
+Content-Type: application/json
+
+{"name": "Hall 1", "type": "VIP", "rowsCount": 8, "seatsPerRow": 10}
+
+### Сеанси — створити (зв'язок з фільмом і залом)
+POST http://localhost:8000/api/screenings
+Content-Type: application/json
+
+{"movieId": 1, "hallId": 1, "startsAt": "2026-09-20 18:30", "price": 250, "language": "UA"}
+
+### Сеанси — список
+GET http://localhost:8000/api/screenings
+
+### Сеанси — оновити
+PATCH http://localhost:8000/api/screenings/1
+Content-Type: application/json
+
+{"price": 220}
+
+### Клієнти — створити
+POST http://localhost:8000/api/customers
+Content-Type: application/json
+
+{"firstName": "Olena", "lastName": "Koval", "email": "olena@example.com", "phone": "+380501112233", "birthDate": "2000-05-10"}
+
+### Клієнти — список
+GET http://localhost:8000/api/customers
+
+### Квитки — створити (зв'язок з сеансом і клієнтом, ціна береться з сеансу)
+POST http://localhost:8000/api/tickets
+Content-Type: application/json
+
+{"screeningId": 1, "customerId": 1, "seatRow": 5, "seatNumber": 7}
+
+### Квитки — те саме місце ще раз (очікується 422)
+POST http://localhost:8000/api/tickets
+Content-Type: application/json
+
+{"screeningId": 1, "customerId": 1, "seatRow": 5, "seatNumber": 7}
+
+### Квитки — список
+GET http://localhost:8000/api/tickets
+
+### Квитки — оплатити
+PATCH http://localhost:8000/api/tickets/1
+Content-Type: application/json
+
+{"status": "paid"}
+
+### Квитки — видалити
+DELETE http://localhost:8000/api/tickets/1
+
+### Клієнти — видалити
+DELETE http://localhost:8000/api/customers/1
+
+### Сеанси — видалити
+DELETE http://localhost:8000/api/screenings/1
+
+### Зали — видалити
+DELETE http://localhost:8000/api/halls/1
+
+### Фільми — видалити
+DELETE http://localhost:8000/api/movies/1
