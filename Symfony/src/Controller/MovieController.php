@@ -13,9 +13,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class MovieController extends ApiController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(MovieRepository $movies): JsonResponse
+    public function index(Request $request, MovieRepository $movies): JsonResponse
     {
-        return $this->json($movies->findAll(), context: ['groups' => 'movie:read']);
+        return $this->listEntities($request, $movies->createQueryBuilder('m'), MovieRepository::FILTERS, 'movie');
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]

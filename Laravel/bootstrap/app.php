@@ -12,12 +12,17 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
-        //
+        $middleware->api(append: [\App\Http\Middleware\UnescapedUnicodeJson::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Always answer API requests with JSON (validation errors, 404, etc.)
         $exceptions->shouldRenderJsonWhen(fn ($request) => $request->is('api/*'));
-        $exceptions->render(fn (Symfony\Component\HttpKernel\Exception\NotFoundHttpException $e, $request) => $request->is('api/*')
-            ? response()->json(['message' => 'Resource not found.'], 404)
+        // HTTP errors of the API (400, 404, ...) return only a message, without a debug trace
+        $exceptions->render(fn (Symfony\Component\HttpKernel\Exception\HttpException $e, $request) => $request->is('api/*')
+            ? response()->json(
+                ['message' => $e instanceof Symfony\Component\HttpKernel\Exception\NotFoundHttpException ? 'Resource not found.' : $e->getMessage()],
+                $e->getStatusCode(),
+                $e->getHeaders(),
+            )
             : null);
     })->create();

@@ -2,12 +2,23 @@
 
 namespace App\Models;
 
+use App\Services\QueryFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Screening extends Model
 {
+    /** Filters available on GET /api/... (see QueryFilter) */
+    public const FILTERS = [
+        'id' => QueryFilter::INT,
+        'movie_id' => QueryFilter::RELATION,
+        'hall_id' => QueryFilter::RELATION,
+        'starts_at' => QueryFilter::DATETIME,
+        'price' => QueryFilter::DECIMAL,
+        'language' => QueryFilter::STRING,
+    ];
+
     protected $fillable = [
         'movie_id',
         'hall_id',

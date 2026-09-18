@@ -114,3 +114,69 @@ Accept: application/json
 ### Фільми — видалити
 DELETE http://localhost:8001/api/movies/1
 Accept: application/json
+
+# ───────── Lab 4: фільтрація та пагінація ─────────
+
+### Пагінація: 2-га сторінка, по 5 записів
+GET http://localhost:8001/api/movies?page=2&itemsPerPage=5
+Accept: application/json
+
+### Рядок — пошук за входженням, без урахування регістру
+GET http://localhost:8001/api/movies?title=the
+Accept: application/json
+
+### Діапазон чисел + точне значення enum + сортування
+GET http://localhost:8001/api/movies?duration_minutes[gte]=120&duration_minutes[lte]=160&age_rating=16%2B&sort=duration_minutes&order=desc
+Accept: application/json
+
+### Діапазон дат
+GET http://localhost:8001/api/movies?release_date[gte]=2024-01-01&release_date[lte]=2025-12-31
+Accept: application/json
+
+### Зали за типом
+GET http://localhost:8001/api/halls?type=IMAX
+Accept: application/json
+
+### Зали: рядів не більше 9
+GET http://localhost:8001/api/halls?rows_count[lte]=9&seats_per_row[gte]=10
+Accept: application/json
+
+### Сеанси: зал, максимальна ціна, сортування за часом
+GET http://localhost:8001/api/screenings?hall_id=3&price[lte]=200&sort=starts_at
+Accept: application/json
+
+### Сеанси на конкретний день (datetime-поле, фільтр датою)
+GET http://localhost:8001/api/screenings?starts_at=2026-09-20&language=ua
+Accept: application/json
+
+### Сеанси конкретного фільму у проміжку часу
+GET http://localhost:8001/api/screenings?movie_id=1&starts_at[gte]=2026-09-18%2000:00&starts_at[lt]=2026-09-25%2000:00
+Accept: application/json
+
+### Клієнти: прізвище + телефон + народжені до 1990
+GET http://localhost:8001/api/customers?last_name=ко&phone=050&birth_date[lt]=1990-01-01
+Accept: application/json
+
+### Клієнти за email
+GET http://localhost:8001/api/customers?email=example.com&itemsPerPage=20
+Accept: application/json
+
+### Квитки: оплачені на сеанс 5
+GET http://localhost:8001/api/tickets?screening_id=5&status=paid
+Accept: application/json
+
+### Квитки клієнта: ряд від 3, ціна від 200
+GET http://localhost:8001/api/tickets?customer_id=1&seat_row[gte]=3&price[gte]=200
+Accept: application/json
+
+### Квитки, куплені сьогодні
+GET http://localhost:8001/api/tickets?purchased_at=2026-09-18&sort=price&order=desc
+Accept: application/json
+
+### Помилка: itemsPerPage > 100 (очікується 400)
+GET http://localhost:8001/api/tickets?itemsPerPage=500
+Accept: application/json
+
+### Помилка: неправильне число у фільтрі (очікується 400)
+GET http://localhost:8001/api/movies?duration_minutes=abc
+Accept: application/json

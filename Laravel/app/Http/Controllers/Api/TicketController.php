@@ -18,9 +18,9 @@ class TicketController extends ApiController
         'customer:id,first_name,last_name,email',
     ];
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Ticket::with(self::RELATIONS)->get());
+        return $this->listResponse($request, Ticket::with(self::RELATIONS), Ticket::FILTERS);
     }
 
     public function store(Request $request): JsonResponse

@@ -15,9 +15,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class ScreeningController extends ApiController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(ScreeningRepository $screenings): JsonResponse
+    public function index(Request $request, ScreeningRepository $screenings): JsonResponse
     {
-        return $this->json($screenings->findAll(), context: ['groups' => 'screening:read']);
+        return $this->listEntities($request, $screenings->createQueryBuilder('s'), ScreeningRepository::FILTERS, 'screening');
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]

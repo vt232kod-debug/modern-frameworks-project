@@ -93,3 +93,53 @@ DELETE http://localhost:8000/api/halls/1
 
 ### Фільми — видалити
 DELETE http://localhost:8000/api/movies/1
+
+# ───────── Lab 4: фільтрація та пагінація ─────────
+
+### Пагінація: 2-га сторінка, по 5 записів
+GET http://localhost:8000/api/movies?page=2&itemsPerPage=5
+
+### Рядок — пошук за входженням, без урахування регістру
+GET http://localhost:8000/api/movies?title=the
+
+### Діапазон чисел + точне значення enum + сортування
+GET http://localhost:8000/api/movies?durationMinutes[gte]=120&durationMinutes[lte]=160&ageRating=16%2B&sort=durationMinutes&order=desc
+
+### Діапазон дат
+GET http://localhost:8000/api/movies?releaseDate[gte]=2024-01-01&releaseDate[lte]=2025-12-31
+
+### Зали за типом
+GET http://localhost:8000/api/halls?type=IMAX
+
+### Зали: рядів не більше 9
+GET http://localhost:8000/api/halls?rowsCount[lte]=9&seatsPerRow[gte]=10
+
+### Сеанси: зал, максимальна ціна, сортування за часом
+GET http://localhost:8000/api/screenings?hallId=3&price[lte]=200&sort=startsAt
+
+### Сеанси на конкретний день (datetime-поле, фільтр датою)
+GET http://localhost:8000/api/screenings?startsAt=2026-09-20&language=ua
+
+### Сеанси конкретного фільму у проміжку часу
+GET http://localhost:8000/api/screenings?movieId=1&startsAt[gte]=2026-09-18%2000:00&startsAt[lt]=2026-09-25%2000:00
+
+### Клієнти: прізвище + телефон + народжені до 1990
+GET http://localhost:8000/api/customers?lastName=ко&phone=050&birthDate[lt]=1990-01-01
+
+### Клієнти за email
+GET http://localhost:8000/api/customers?email=example.com&itemsPerPage=20
+
+### Квитки: оплачені на сеанс 5
+GET http://localhost:8000/api/tickets?screeningId=5&status=paid
+
+### Квитки клієнта: ряд від 3, ціна від 200
+GET http://localhost:8000/api/tickets?customerId=1&seatRow[gte]=3&price[gte]=200
+
+### Квитки, куплені сьогодні
+GET http://localhost:8000/api/tickets?purchasedAt=2026-09-18&sort=price&order=desc
+
+### Помилка: itemsPerPage > 100 (очікується 400)
+GET http://localhost:8000/api/tickets?itemsPerPage=500
+
+### Помилка: неправильне число у фільтрі (очікується 400)
+GET http://localhost:8000/api/movies?durationMinutes=abc

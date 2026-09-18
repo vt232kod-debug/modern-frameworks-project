@@ -9,9 +9,9 @@ use Illuminate\Validation\Rule;
 
 class MovieController extends ApiController
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Movie::all());
+        return $this->listResponse($request, Movie::query(), Movie::FILTERS);
     }
 
     public function store(Request $request): JsonResponse

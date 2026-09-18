@@ -69,4 +69,42 @@ GRANT ALL ON cinema_laravel.* TO 'cinema'@'localhost';
 `{resource}`: `movies`, `halls`, `screenings`, `customers`, `tickets`.
 Зв'язки передаються через id: Symfony — `movieId`, `hallId`, `screeningId`, `customerId`; Laravel — `movie_id`, `hall_id`, `screening_id`, `customer_id`.
 
+## Фільтрація, сортування, пагінація (з lab-4)
+
+`GET /api/{resource}` приймає фільтр **по кожному полю** таблиці (Symfony — camelCase, Laravel — snake_case):
+
+| Тип поля | Приклад | Як працює |
+|---|---|---|
+| рядок | `?title=the` | входження, без урахування регістру |
+| число / ціна | `?price=250`, `?price[gte]=100&price[lte]=300` | точне значення або діапазон (`gte`, `lte`, `gt`, `lt`) |
+| дата | `?releaseDate[gte]=2024-01-01` | `Y-m-d`, точне значення або діапазон |
+| дата-час | `?startsAt=2026-09-20`, `?startsAt[gte]=2026-09-20%2018:00` | день цілком, `Y-m-d H:i` або діапазон |
+| enum | `?status=paid`, `?type=IMAX` | точне значення |
+| зв'язок | `?movieId=3` / `?movie_id=3` | id пов'язаного запису |
+
+- Пагінація: `?page=2&itemsPerPage=20` (за замовчуванням 10, максимум 100).
+- Сортування: `?sort=<поле>&order=asc|desc` (за замовчуванням `id asc`).
+- Неправильні параметри → `400` з поясненням.
+
+Відповідь списку:
+
+```json
+{
+  "data": [ ... ],
+  "meta": { "page": 2, "itemsPerPage": 20, "totalItems": 150, "totalPages": 8 }
+}
+```
+
+Логіка винесена в сервіси: `Symfony/src/Service/{QueryFilter,Paginator}.php`, `Laravel/app/Services/{QueryFilter,Paginator}.php`;
+перелік фільтрів кожної сутності — `FILTERS` у репозиторіях (Symfony) та моделях (Laravel).
+
+Тестові дані (30 фільмів, 5 залів, 60 сеансів, 50 клієнтів, 150 квитків):
+
+```bash
+# Symfony
+php bin/console doctrine:schema:drop --full-database --force && php bin/console doctrine:migrations:migrate -n && php bin/console doctrine:fixtures:load -n
+# Laravel
+php artisan migrate:fresh --seed
+```
+
 Готові запити для PhpStorm HTTP Client — `http/symfony.http` та `http/laravel.http`.

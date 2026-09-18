@@ -15,9 +15,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class TicketController extends ApiController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(TicketRepository $tickets): JsonResponse
+    public function index(Request $request, TicketRepository $tickets): JsonResponse
     {
-        return $this->json($tickets->findAll(), context: ['groups' => 'ticket:read']);
+        return $this->listEntities($request, $tickets->createQueryBuilder('t'), TicketRepository::FILTERS, 'ticket');
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]

@@ -10,9 +10,9 @@ class ScreeningController extends ApiController
 {
     private const RELATIONS = ['movie:id,title', 'hall:id,name,type'];
 
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Screening::with(self::RELATIONS)->get());
+        return $this->listResponse($request, Screening::with(self::RELATIONS), Screening::FILTERS);
     }
 
     public function store(Request $request): JsonResponse

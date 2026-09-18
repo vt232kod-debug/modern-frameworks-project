@@ -9,9 +9,9 @@ use Illuminate\Validation\Rule;
 
 class HallController extends ApiController
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Hall::all()->each->append('capacity'));
+        return $this->listResponse($request, Hall::query(), Hall::FILTERS, fn (Hall $hall) => $hall->append('capacity'));
     }
 
     public function store(Request $request): JsonResponse

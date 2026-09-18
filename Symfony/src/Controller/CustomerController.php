@@ -13,9 +13,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CustomerController extends ApiController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(CustomerRepository $customers): JsonResponse
+    public function index(Request $request, CustomerRepository $customers): JsonResponse
     {
-        return $this->json($customers->findAll(), context: ['groups' => 'customer:read']);
+        return $this->listEntities($request, $customers->createQueryBuilder('c'), CustomerRepository::FILTERS, 'customer');
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]

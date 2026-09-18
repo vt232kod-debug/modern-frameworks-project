@@ -9,9 +9,9 @@ use Illuminate\Validation\Rule;
 
 class CustomerController extends ApiController
 {
-    public function index(): JsonResponse
+    public function index(Request $request): JsonResponse
     {
-        return response()->json(Customer::all());
+        return $this->listResponse($request, Customer::query(), Customer::FILTERS);
     }
 
     public function store(Request $request): JsonResponse

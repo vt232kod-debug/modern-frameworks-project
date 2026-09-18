@@ -2,12 +2,25 @@
 
 namespace App\Models;
 
+use App\Services\QueryFilter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Ticket extends Model
 {
     public const STATUSES = ['reserved', 'paid', 'cancelled'];
+
+    /** Filters available on GET /api/... (see QueryFilter) */
+    public const FILTERS = [
+        'id' => QueryFilter::INT,
+        'screening_id' => QueryFilter::RELATION,
+        'customer_id' => QueryFilter::RELATION,
+        'seat_row' => QueryFilter::INT,
+        'seat_number' => QueryFilter::INT,
+        'price' => QueryFilter::DECIMAL,
+        'status' => QueryFilter::ENUM,
+        'purchased_at' => QueryFilter::DATETIME,
+    ];
 
     protected $fillable = [
         'screening_id',

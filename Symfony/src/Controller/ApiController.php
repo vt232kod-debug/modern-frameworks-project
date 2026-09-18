@@ -2,7 +2,10 @@
 
 namespace App\Controller;
 
+use App\Service\Paginator;
+use App\Service\QueryFilter;
 use Doctrine\ORM\EntityManagerInterface;
+use Doctrine\ORM\QueryBuilder;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -22,7 +25,30 @@ abstract class ApiController extends AbstractController
         protected readonly EntityManagerInterface $em,
         protected readonly SerializerInterface $serializer,
         protected readonly ValidatorInterface $validator,
+        protected readonly QueryFilter $queryFilter,
+        protected readonly Paginator $paginator,
     ) {
+    }
+
+    /**
+     * Same as AbstractController::json(), but keeps Cyrillic readable in responses.
+     */
+    protected function json(mixed $data, int $status = 200, array $headers = [], array $context = []): JsonResponse
+    {
+        $context += ['json_encode_options' => JsonResponse::DEFAULT_ENCODING_OPTIONS | \JSON_UNESCAPED_UNICODE];
+
+        return parent::json($data, $status, $headers, $context);
+    }
+
+    /**
+     * Filtered, sorted and paginated list: {data: [...], meta: {page, itemsPerPage, totalItems, totalPages}}.
+     */
+    protected function listEntities(Request $request, QueryBuilder $qb, array $filters, string $group): JsonResponse
+    {
+        $query = $request->query->all();
+        $this->queryFilter->apply($qb, $filters, $query);
+
+        return $this->json($this->paginator->paginate($qb, $query), context: ['groups' => $group.':read']);
     }
 
     /**

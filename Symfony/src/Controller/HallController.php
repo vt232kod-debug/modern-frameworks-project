@@ -13,9 +13,9 @@ use Symfony\Component\Routing\Attribute\Route;
 final class HallController extends ApiController
 {
     #[Route('', name: 'index', methods: ['GET'])]
-    public function index(HallRepository $halls): JsonResponse
+    public function index(Request $request, HallRepository $halls): JsonResponse
     {
-        return $this->json($halls->findAll(), context: ['groups' => 'hall:read']);
+        return $this->listEntities($request, $halls->createQueryBuilder('h'), HallRepository::FILTERS, 'hall');
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'], requirements: ['id' => '\d+'])]
