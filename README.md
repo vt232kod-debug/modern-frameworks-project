@@ -31,3 +31,15 @@ cd Laravel && composer install && cp .env.example .env && php artisan key:genera
 ```
 
 Вимоги: PHP 8.2+, Composer, Symfony CLI, MySQL.
+
+## API (з lab-2)
+
+| Метод | Symfony (`:8000`) | Laravel (`:8001`) | Дія |
+|---|---|---|---|
+| GET | `/api/movies` | `/api/movies` | Список |
+| GET | `/api/movies/{id}` | `/api/movies/{id}` | Один запис |
+| POST | `/api/movies` | `/api/movies` | Створити |
+| PUT / PATCH | `/api/movies/{id}` | `/api/movies/{id}` | Оновити |
+| DELETE | `/api/movies/{id}` | `/api/movies/{id}` | Видалити |
+
+Готові запити для PhpStorm HTTP Client — у папці `http/`.
