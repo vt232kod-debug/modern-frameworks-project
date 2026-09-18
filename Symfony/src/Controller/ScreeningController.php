@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/screenings', name: 'api_screenings_')]
 final class ScreeningController extends ApiController
@@ -26,18 +27,21 @@ final class ScreeningController extends ApiController
         return $this->json($screening, context: ['groups' => 'screening:read']);
     }
 
+    #[IsGranted('ROLE_MANAGER')]
     #[Route('', name: 'create', methods: ['POST'])]
     public function create(Request $request): JsonResponse
     {
         return $this->save($request, new Screening(), Response::HTTP_CREATED);
     }
 
+    #[IsGranted('ROLE_MANAGER')]
     #[Route('/{id}', name: 'update', methods: ['PUT', 'PATCH'], requirements: ['id' => '\d+'])]
     public function update(Request $request, Screening $screening): JsonResponse
     {
         return $this->save($request, $screening, Response::HTTP_OK);
     }
 
+    #[IsGranted('ROLE_ADMIN')]
     #[Route('/{id}', name: 'delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(Screening $screening): JsonResponse
     {

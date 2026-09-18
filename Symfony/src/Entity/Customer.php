@@ -21,25 +21,25 @@ class Customer
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['customer:read', 'ticket:read'])]
+    #[Groups(['customer:read', 'ticket:read', 'user:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    #[Groups(['customer:read', 'customer:write', 'ticket:read'])]
+    #[Groups(['customer:read', 'customer:write', 'ticket:read', 'user:read'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 100)]
     #[Assert\NotBlank]
     #[Assert\Length(max: 100)]
-    #[Groups(['customer:read', 'customer:write', 'ticket:read'])]
+    #[Groups(['customer:read', 'customer:write', 'ticket:read', 'user:read'])]
     private ?string $lastName = null;
 
     #[ORM\Column(length: 180, unique: true)]
     #[Assert\NotBlank]
     #[Assert\Email]
-    #[Groups(['customer:read', 'customer:write', 'ticket:read'])]
+    #[Groups(['customer:read', 'customer:write', 'ticket:read', 'user:read'])]
     private ?string $email = null;
 
     #[ORM\Column(length: 20, nullable: true)]

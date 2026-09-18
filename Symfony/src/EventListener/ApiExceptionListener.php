@@ -27,7 +27,12 @@ final class ApiExceptionListener
         $exception = $event->getThrowable();
         if ($exception instanceof HttpExceptionInterface) {
             $status = $exception->getStatusCode();
-            $message = $status === 404 ? 'Resource not found.' : $exception->getMessage();
+            $message = match (true) {
+                $status === 404 => 'Resource not found.',
+                // messages of #[IsGranted] contain internal details
+                $status === 403 && str_starts_with($exception->getMessage(), 'Access Denied') => 'Access denied for your role.',
+                default => $exception->getMessage(),
+            };
             $headers = $exception->getHeaders();
         } else {
             $status = 500;

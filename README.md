@@ -11,7 +11,7 @@
 | `lab-2` | CRUD-операції на Symfony та Laravel |
 | `lab-3` | MySQL, 5 таблиць на кожен фреймворк, CRUD для всіх таблиць зі зв'язками |
 | `lab-4` | Фільтрація по кожному полю, пагінація з `itemsPerPage` |
-| `lab-5` | JWT-автентифікація, ролі Client / Manager / Admin |
+| `lab-5` | JWT-автентифікація, ролі Client / Manager / Admin, контроль доступу до CRUD |
 
 ## Структура
 
@@ -107,4 +107,44 @@ php bin/console doctrine:schema:drop --full-database --force && php bin/console 
 php artisan migrate:fresh --seed
 ```
 
-Готові запити для PhpStorm HTTP Client — `http/symfony.http` та `http/laravel.http`.
+## Автентифікація та ролі (з lab-5)
+
+JWT: Symfony — `lexik/jwt-authentication-bundle` (RS256), Laravel — `php-open-source-saver/jwt-auth` (HS256).
+Усі запити до `/api/*`, крім входу й реєстрації, потребують заголовка `Authorization: Bearer <token>`.
+
+| Метод | Шлях | Доступ | Опис |
+|---|---|---|---|
+| POST | `/api/auth/register` | усі | реєстрація клієнта (створює користувача + клієнта), повертає токен |
+| POST | `/api/auth/login` | усі | `{"email", "password"}` → `{"token"}` |
+| GET | `/api/auth/me` | з токеном | поточний користувач |
+| POST | `/api/auth/logout`, `/api/auth/refresh` | з токеном | тільки Laravel: відкликати / оновити токен |
+
+Ролі (ієрархія **Admin > Manager > Client** — старша роль має всі права молодшої):
+
+| Ресурс | Client | Manager | Admin |
+|---|---|---|---|
+| `movies`, `halls`, `screenings` | перегляд | + створення, зміна | + видалення |
+| `customers` | — | перегляд, створення, зміна | + видалення |
+| `tickets` | тільки **свої**: перегляд, купівля (клієнт, ціна й статус підставляються автоматично) | усі: перегляд, створення, зміна | + видалення |
+| `users` | — | — | повний CRUD, призначення ролей |
+
+Без токена або з недійсним токеном → `401`, недостатньо прав → `403`.
+
+Тестові облікові записи (створюються фікстурами / сидером):
+
+| Роль | Email | Пароль |
+|---|---|---|
+| Admin | `admin@cinema.test` | `admin123` |
+| Manager | `manager@cinema.test` | `manager123` |
+| Client | `client@cinema.test` | `client123` |
+
+Налаштування після клонування:
+
+```bash
+# Symfony — ключі JWT не зберігаються в git
+php bin/console lexik:jwt:generate-keypair
+# Laravel
+php artisan jwt:secret
+```
+
+Готові запити для PhpStorm HTTP Client — `http/symfony.http` та `http/laravel.http` (спочатку виконайте запит «Вхід» — токен підставиться в усі інші).

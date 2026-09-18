@@ -7,9 +7,11 @@ use App\Entity\Hall;
 use App\Entity\Movie;
 use App\Entity\Screening;
 use App\Entity\Ticket;
+use App\Entity\User;
 use Doctrine\Bundle\FixturesBundle\Fixture;
 use Doctrine\Persistence\ObjectManager;
 use Faker\Factory;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 /**
  * Demo data for filtering and pagination: php bin/console doctrine:fixtures:load
@@ -25,6 +27,10 @@ class AppFixtures extends Fixture
         'Blade Runner 2049', 'Mad Max: Fury Road', 'The Shining', 'Get Out', 'La La Land', 'Whiplash',
         'Tenet', 'Arrival',
     ];
+
+    public function __construct(private readonly UserPasswordHasherInterface $hasher)
+    {
+    }
 
     public function load(ObjectManager $manager): void
     {
@@ -92,6 +98,16 @@ class AppFixtures extends Fixture
                 ->setSeatNumber($seat)
                 ->setPrice($screening->getPrice())
                 ->setStatus($faker->randomElement(['reserved', 'paid', 'paid', 'paid', 'cancelled'])));
+        }
+
+        // Demo accounts, one per role; the client owns customer #1
+        foreach ([
+            ['admin@cinema.test', 'admin123', User::ROLE_ADMIN, null],
+            ['manager@cinema.test', 'manager123', User::ROLE_MANAGER, null],
+            ['client@cinema.test', 'client123', User::ROLE_CLIENT, $customers[0]],
+        ] as [$email, $password, $role, $customer]) {
+            $user = (new User())->setEmail($email)->setRole($role)->setCustomer($customer);
+            $manager->persist($user->setPassword($this->hasher->hashPassword($user, $password)));
         }
 
         $manager->flush();

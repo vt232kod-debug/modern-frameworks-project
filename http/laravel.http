@@ -1,12 +1,97 @@
 # Laravel API — http://localhost:8001
-# Порядок: фільм → зал → сеанс → клієнт → квиток
+# Спочатку виконайте один із запитів "Вхід" — токен збережеться у {{token}}
+# і підставлятиметься в усі інші запити (Authorization: Bearer {{token}}).
+
+# ───────── Lab 5: JWT та ролі ─────────
+
+### Вхід: Admin (усі права)
+POST http://localhost:8001/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{"email": "admin@cinema.test", "password": "admin123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Вхід: Manager (читання + створення/зміна, без видалення)
+POST http://localhost:8001/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{"email": "manager@cinema.test", "password": "manager123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Вхід: Client (читання, лише свої квитки)
+POST http://localhost:8001/api/auth/login
+Content-Type: application/json
+Accept: application/json
+
+{"email": "client@cinema.test", "password": "client123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Реєстрація нового клієнта (публічна, одразу повертає токен)
+POST http://localhost:8001/api/auth/register
+Content-Type: application/json
+Accept: application/json
+
+{"email": "new.client@example.com", "password": "secret1", "first_name": "Ольга", "last_name": "Шевченко"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Поточний користувач
+GET http://localhost:8001/api/auth/me
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Без токена → 401
+GET http://localhost:8001/api/movies
+Authorization: Bearer invalid
+Accept: application/json
+
+### Користувачі — список (тільки Admin)
+GET http://localhost:8001/api/users
+Authorization: Bearer {{token}}
+Accept: application/json
+
+### Користувачі — створити менеджера (тільки Admin)
+POST http://localhost:8001/api/users
+Authorization: Bearer {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{"email": "manager2@cinema.test", "password": "secret1", "role": "manager"}
+
+### Користувачі — змінити роль (тільки Admin)
+PATCH http://localhost:8001/api/users/4
+Authorization: Bearer {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{"role": "admin"}
+
+### Квиток від імені клієнта: customer/price/status з запиту ігноруються
+POST http://localhost:8001/api/tickets
+Authorization: Bearer {{token}}
+Accept: application/json
+Content-Type: application/json
+
+{"screening_id": 2, "customer_id": 7, "seat_row": 1, "seat_number": 2, "price": 1, "status": "paid"}
+
+### Видалити фільм (Manager/Client → 403, Admin → 204)
+DELETE http://localhost:8001/api/movies/30
+Authorization: Bearer {{token}}
+Accept: application/json
 
 ### Фільми — список
 GET http://localhost:8001/api/movies
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Фільми — створити
 POST http://localhost:8001/api/movies
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -14,10 +99,12 @@ Content-Type: application/json
 
 ### Фільми — один
 GET http://localhost:8001/api/movies/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Фільми — оновити
 PATCH http://localhost:8001/api/movies/1
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -25,6 +112,7 @@ Content-Type: application/json
 
 ### Зали — створити
 POST http://localhost:8001/api/halls
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -32,10 +120,12 @@ Content-Type: application/json
 
 ### Зали — список
 GET http://localhost:8001/api/halls
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Зали — оновити
 PUT http://localhost:8001/api/halls/1
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -43,6 +133,7 @@ Content-Type: application/json
 
 ### Сеанси — створити (зв'язок з фільмом і залом)
 POST http://localhost:8001/api/screenings
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -50,10 +141,12 @@ Content-Type: application/json
 
 ### Сеанси — список
 GET http://localhost:8001/api/screenings
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Сеанси — оновити
 PATCH http://localhost:8001/api/screenings/1
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -61,6 +154,7 @@ Content-Type: application/json
 
 ### Клієнти — створити
 POST http://localhost:8001/api/customers
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -68,10 +162,12 @@ Content-Type: application/json
 
 ### Клієнти — список
 GET http://localhost:8001/api/customers
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Квитки — створити (зв'язок з сеансом і клієнтом, ціна береться з сеансу)
 POST http://localhost:8001/api/tickets
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -79,6 +175,7 @@ Content-Type: application/json
 
 ### Квитки — те саме місце ще раз (очікується 422)
 POST http://localhost:8001/api/tickets
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -86,10 +183,12 @@ Content-Type: application/json
 
 ### Квитки — список
 GET http://localhost:8001/api/tickets
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Квитки — оплатити
 PATCH http://localhost:8001/api/tickets/1
+Authorization: Bearer {{token}}
 Accept: application/json
 Content-Type: application/json
 
@@ -97,86 +196,107 @@ Content-Type: application/json
 
 ### Квитки — видалити
 DELETE http://localhost:8001/api/tickets/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Клієнти — видалити
 DELETE http://localhost:8001/api/customers/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Сеанси — видалити
 DELETE http://localhost:8001/api/screenings/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Зали — видалити
 DELETE http://localhost:8001/api/halls/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Фільми — видалити
 DELETE http://localhost:8001/api/movies/1
+Authorization: Bearer {{token}}
 Accept: application/json
 
 # ───────── Lab 4: фільтрація та пагінація ─────────
 
 ### Пагінація: 2-га сторінка, по 5 записів
 GET http://localhost:8001/api/movies?page=2&itemsPerPage=5
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Рядок — пошук за входженням, без урахування регістру
 GET http://localhost:8001/api/movies?title=the
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Діапазон чисел + точне значення enum + сортування
 GET http://localhost:8001/api/movies?duration_minutes[gte]=120&duration_minutes[lte]=160&age_rating=16%2B&sort=duration_minutes&order=desc
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Діапазон дат
 GET http://localhost:8001/api/movies?release_date[gte]=2024-01-01&release_date[lte]=2025-12-31
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Зали за типом
 GET http://localhost:8001/api/halls?type=IMAX
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Зали: рядів не більше 9
 GET http://localhost:8001/api/halls?rows_count[lte]=9&seats_per_row[gte]=10
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Сеанси: зал, максимальна ціна, сортування за часом
 GET http://localhost:8001/api/screenings?hall_id=3&price[lte]=200&sort=starts_at
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Сеанси на конкретний день (datetime-поле, фільтр датою)
 GET http://localhost:8001/api/screenings?starts_at=2026-09-20&language=ua
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Сеанси конкретного фільму у проміжку часу
 GET http://localhost:8001/api/screenings?movie_id=1&starts_at[gte]=2026-09-18%2000:00&starts_at[lt]=2026-09-25%2000:00
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Клієнти: прізвище + телефон + народжені до 1990
 GET http://localhost:8001/api/customers?last_name=ко&phone=050&birth_date[lt]=1990-01-01
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Клієнти за email
 GET http://localhost:8001/api/customers?email=example.com&itemsPerPage=20
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Квитки: оплачені на сеанс 5
 GET http://localhost:8001/api/tickets?screening_id=5&status=paid
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Квитки клієнта: ряд від 3, ціна від 200
 GET http://localhost:8001/api/tickets?customer_id=1&seat_row[gte]=3&price[gte]=200
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Квитки, куплені сьогодні
 GET http://localhost:8001/api/tickets?purchased_at=2026-09-18&sort=price&order=desc
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Помилка: itemsPerPage > 100 (очікується 400)
 GET http://localhost:8001/api/tickets?itemsPerPage=500
+Authorization: Bearer {{token}}
 Accept: application/json
 
 ### Помилка: неправильне число у фільтрі (очікується 400)
 GET http://localhost:8001/api/movies?duration_minutes=abc
+Authorization: Bearer {{token}}
 Accept: application/json

@@ -4,11 +4,15 @@ namespace App\Http\Controllers\Api;
 
 use App\Models\Screening;
 use App\Models\Ticket;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
+/**
+ * Clients see and buy only their own tickets; managers and admins work with all tickets.
+ */
 class TicketController extends ApiController
 {
     private const RELATIONS = [
@@ -20,18 +24,40 @@ class TicketController extends ApiController
 
     public function index(Request $request): JsonResponse
     {
-        return $this->listResponse($request, Ticket::with(self::RELATIONS), Ticket::FILTERS);
+        $query = Ticket::with(self::RELATIONS);
+        if (!$this->user()->hasRole(User::ROLE_MANAGER)) {
+            $query->where('customer_id', $this->user()->customer_id);
+        }
+
+        return $this->listResponse($request, $query, Ticket::FILTERS);
     }
 
     public function store(Request $request): JsonResponse
     {
-        $ticket = Ticket::create($this->validateTicket($request));
+        $isClient = !$this->user()->hasRole(User::ROLE_MANAGER);
+        if ($isClient) {
+            // A client buys a ticket for himself: customer, status and price are not taken from the request
+            if ($this->user()->customer_id === null) {
+                abort(403, 'Your account has no customer profile.');
+            }
+            $request->merge(['customer_id' => $this->user()->customer_id, 'status' => 'reserved']);
+        }
+
+        $data = $this->validateTicket($request);
+        if ($isClient) {
+            unset($data['price']); // the screening price is used
+        }
+        $ticket = Ticket::create($data);
 
         return response()->json($ticket->load(self::RELATIONS), 201);
     }
 
     public function show(Ticket $ticket): JsonResponse
     {
+        if (!$this->user()->hasRole(User::ROLE_MANAGER) && (int) $ticket->customer_id !== (int) $this->user()->customer_id) {
+            abort(403, 'You can view only your own tickets.');
+        }
+
         return response()->json($ticket->load(self::RELATIONS));
     }
 
@@ -83,5 +109,10 @@ class TicketController extends ApiController
         }
 
         return $data;
+    }
+
+    private function user(): User
+    {
+        return auth('api')->user();
     }
 }

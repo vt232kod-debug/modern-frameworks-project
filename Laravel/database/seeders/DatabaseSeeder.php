@@ -7,6 +7,7 @@ use App\Models\Hall;
 use App\Models\Movie;
 use App\Models\Screening;
 use App\Models\Ticket;
+use App\Models\User;
 use Faker\Factory;
 use Illuminate\Database\Seeder;
 
@@ -78,5 +79,17 @@ class DatabaseSeeder extends Seeder
                 'status' => $faker->randomElement(['reserved', 'paid', 'paid', 'paid', 'cancelled']),
             ]);
         }
+
+        // Demo accounts, one per role; the client owns customer #1
+        User::create(['name' => 'Admin', 'email' => 'admin@cinema.test', 'password' => 'admin123', 'role' => User::ROLE_ADMIN]);
+        User::create(['name' => 'Manager', 'email' => 'manager@cinema.test', 'password' => 'manager123', 'role' => User::ROLE_MANAGER]);
+        $client = $customers->first();
+        User::create([
+            'name' => "{$client->first_name} {$client->last_name}",
+            'email' => 'client@cinema.test',
+            'password' => 'client123',
+            'role' => User::ROLE_CLIENT,
+            'customer_id' => $client->id,
+        ]);
     }
 }

@@ -1,145 +1,254 @@
 # Symfony API — http://localhost:8000
-# Порядок: фільм → зал → сеанс → клієнт → квиток
+# Спочатку виконайте один із запитів "Вхід" — токен збережеться у {{token}}
+# і підставлятиметься в усі інші запити (Authorization: Bearer {{token}}).
+
+# ───────── Lab 5: JWT та ролі ─────────
+
+### Вхід: Admin (усі права)
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{"email": "admin@cinema.test", "password": "admin123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Вхід: Manager (читання + створення/зміна, без видалення)
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{"email": "manager@cinema.test", "password": "manager123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Вхід: Client (читання, лише свої квитки)
+POST http://localhost:8000/api/auth/login
+Content-Type: application/json
+
+{"email": "client@cinema.test", "password": "client123"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Реєстрація нового клієнта (публічна, одразу повертає токен)
+POST http://localhost:8000/api/auth/register
+Content-Type: application/json
+
+{"email": "new.client@example.com", "password": "secret1", "firstName": "Ольга", "lastName": "Шевченко"}
+
+> {% client.global.set("token", response.body.token); %}
+
+### Поточний користувач
+GET http://localhost:8000/api/auth/me
+Authorization: Bearer {{token}}
+
+### Без токена → 401
+GET http://localhost:8000/api/movies
+Authorization: Bearer invalid
+
+### Користувачі — список (тільки Admin)
+GET http://localhost:8000/api/users
+Authorization: Bearer {{token}}
+
+### Користувачі — створити менеджера (тільки Admin)
+POST http://localhost:8000/api/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"email": "manager2@cinema.test", "password": "secret1", "role": "manager"}
+
+### Користувачі — змінити роль (тільки Admin)
+PATCH http://localhost:8000/api/users/4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"role": "admin"}
+
+### Квиток від імені клієнта: customer/price/status з запиту ігноруються
+POST http://localhost:8000/api/tickets
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{"screeningId": 2, "customerId": 7, "seatRow": 1, "seatNumber": 2, "price": 1, "status": "paid"}
+
+### Видалити фільм (Manager/Client → 403, Admin → 204)
+DELETE http://localhost:8000/api/movies/30
+Authorization: Bearer {{token}}
 
 ### Фільми — список
 GET http://localhost:8000/api/movies
+Authorization: Bearer {{token}}
 
 ### Фільми — створити
 POST http://localhost:8000/api/movies
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"title": "Dune: Part Two", "description": "Paul Atreides unites with the Fremen", "genre": "Sci-Fi", "durationMinutes": 166, "releaseDate": "2024-03-01", "ageRating": "12+"}
 
 ### Фільми — один
 GET http://localhost:8000/api/movies/1
+Authorization: Bearer {{token}}
 
 ### Фільми — оновити
 PATCH http://localhost:8000/api/movies/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"ageRating": "16+"}
 
 ### Зали — створити
 POST http://localhost:8000/api/halls
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"name": "Hall 1", "type": "IMAX", "rowsCount": 10, "seatsPerRow": 12}
 
 ### Зали — список
 GET http://localhost:8000/api/halls
+Authorization: Bearer {{token}}
 
 ### Зали — оновити
 PUT http://localhost:8000/api/halls/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"name": "Hall 1", "type": "VIP", "rowsCount": 8, "seatsPerRow": 10}
 
 ### Сеанси — створити (зв'язок з фільмом і залом)
 POST http://localhost:8000/api/screenings
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"movieId": 1, "hallId": 1, "startsAt": "2026-09-20 18:30", "price": 250, "language": "UA"}
 
 ### Сеанси — список
 GET http://localhost:8000/api/screenings
+Authorization: Bearer {{token}}
 
 ### Сеанси — оновити
 PATCH http://localhost:8000/api/screenings/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"price": 220}
 
 ### Клієнти — створити
 POST http://localhost:8000/api/customers
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"firstName": "Olena", "lastName": "Koval", "email": "olena@example.com", "phone": "+380501112233", "birthDate": "2000-05-10"}
 
 ### Клієнти — список
 GET http://localhost:8000/api/customers
+Authorization: Bearer {{token}}
 
 ### Квитки — створити (зв'язок з сеансом і клієнтом, ціна береться з сеансу)
 POST http://localhost:8000/api/tickets
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"screeningId": 1, "customerId": 1, "seatRow": 5, "seatNumber": 7}
 
 ### Квитки — те саме місце ще раз (очікується 422)
 POST http://localhost:8000/api/tickets
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"screeningId": 1, "customerId": 1, "seatRow": 5, "seatNumber": 7}
 
 ### Квитки — список
 GET http://localhost:8000/api/tickets
+Authorization: Bearer {{token}}
 
 ### Квитки — оплатити
 PATCH http://localhost:8000/api/tickets/1
+Authorization: Bearer {{token}}
 Content-Type: application/json
 
 {"status": "paid"}
 
 ### Квитки — видалити
 DELETE http://localhost:8000/api/tickets/1
+Authorization: Bearer {{token}}
 
 ### Клієнти — видалити
 DELETE http://localhost:8000/api/customers/1
+Authorization: Bearer {{token}}
 
 ### Сеанси — видалити
 DELETE http://localhost:8000/api/screenings/1
+Authorization: Bearer {{token}}
 
 ### Зали — видалити
 DELETE http://localhost:8000/api/halls/1
+Authorization: Bearer {{token}}
 
 ### Фільми — видалити
 DELETE http://localhost:8000/api/movies/1
+Authorization: Bearer {{token}}
 
 # ───────── Lab 4: фільтрація та пагінація ─────────
 
 ### Пагінація: 2-га сторінка, по 5 записів
 GET http://localhost:8000/api/movies?page=2&itemsPerPage=5
+Authorization: Bearer {{token}}
 
 ### Рядок — пошук за входженням, без урахування регістру
 GET http://localhost:8000/api/movies?title=the
+Authorization: Bearer {{token}}
 
 ### Діапазон чисел + точне значення enum + сортування
 GET http://localhost:8000/api/movies?durationMinutes[gte]=120&durationMinutes[lte]=160&ageRating=16%2B&sort=durationMinutes&order=desc
+Authorization: Bearer {{token}}
 
 ### Діапазон дат
 GET http://localhost:8000/api/movies?releaseDate[gte]=2024-01-01&releaseDate[lte]=2025-12-31
+Authorization: Bearer {{token}}
 
 ### Зали за типом
 GET http://localhost:8000/api/halls?type=IMAX
+Authorization: Bearer {{token}}
 
 ### Зали: рядів не більше 9
 GET http://localhost:8000/api/halls?rowsCount[lte]=9&seatsPerRow[gte]=10
+Authorization: Bearer {{token}}
 
 ### Сеанси: зал, максимальна ціна, сортування за часом
 GET http://localhost:8000/api/screenings?hallId=3&price[lte]=200&sort=startsAt
+Authorization: Bearer {{token}}
 
 ### Сеанси на конкретний день (datetime-поле, фільтр датою)
 GET http://localhost:8000/api/screenings?startsAt=2026-09-20&language=ua
+Authorization: Bearer {{token}}
 
 ### Сеанси конкретного фільму у проміжку часу
 GET http://localhost:8000/api/screenings?movieId=1&startsAt[gte]=2026-09-18%2000:00&startsAt[lt]=2026-09-25%2000:00
+Authorization: Bearer {{token}}
 
 ### Клієнти: прізвище + телефон + народжені до 1990
 GET http://localhost:8000/api/customers?lastName=ко&phone=050&birthDate[lt]=1990-01-01
+Authorization: Bearer {{token}}
 
 ### Клієнти за email
 GET http://localhost:8000/api/customers?email=example.com&itemsPerPage=20
+Authorization: Bearer {{token}}
 
 ### Квитки: оплачені на сеанс 5
 GET http://localhost:8000/api/tickets?screeningId=5&status=paid
+Authorization: Bearer {{token}}
 
 ### Квитки клієнта: ряд від 3, ціна від 200
 GET http://localhost:8000/api/tickets?customerId=1&seatRow[gte]=3&price[gte]=200
+Authorization: Bearer {{token}}
 
 ### Квитки, куплені сьогодні
 GET http://localhost:8000/api/tickets?purchasedAt=2026-09-18&sort=price&order=desc
+Authorization: Bearer {{token}}
 
 ### Помилка: itemsPerPage > 100 (очікується 400)
 GET http://localhost:8000/api/tickets?itemsPerPage=500
+Authorization: Bearer {{token}}
 
 ### Помилка: неправильне число у фільтрі (очікується 400)
 GET http://localhost:8000/api/movies?durationMinutes=abc
+Authorization: Bearer {{token}}

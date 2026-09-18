@@ -13,6 +13,7 @@ return Application::configure(basePath: dirname(__DIR__))
     )
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->api(append: [\App\Http\Middleware\UnescapedUnicodeJson::class]);
+        $middleware->alias(['role' => \App\Http\Middleware\EnsureRole::class]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
         // Always answer API requests with JSON (validation errors, 404, etc.)
